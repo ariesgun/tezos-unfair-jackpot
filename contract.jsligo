@@ -1,0 +1,12 @@
+type parameter = unit;
+type storage = unit;
+
+type return_ = [list<operation>, storage];
+
+let main = ([_action, store]: [parameter, storage]): return_ => {
+  return [
+    (list([]) as list<operation>),
+    store
+  ];
+}
+  

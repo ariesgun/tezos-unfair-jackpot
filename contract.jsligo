@@ -1,18 +1,24 @@
-type parameter = unit;
+type parameter = tez;
 type storage = nat;
 
 type return_ = [list<operation>, storage];
 
-let main = ([_action, store]: [parameter, storage]): return_ => {
+let main = ([action, store]: [parameter, storage]): return_ => {
 
   let store_ = store;
 
-  if (Tezos.amount > (0 as tez)) {
-    store_ = store + (1 as nat);
+  if (Tezos.amount != (action)) {
+    failwith("The transferred token amount does not match the parameter") as return_;
+  } else {
+    if (Tezos.amount > (0 as tez)) {
+      store_ = store + (1 as nat);
+    }
+    
+    return [
+      (list([]) as list<operation>),
+     store_
+    ];
+
   }
- 
-  return [
-    (list([]) as list<operation>),
-    store_
-  ];
+
 }

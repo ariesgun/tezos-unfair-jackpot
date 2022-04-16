@@ -1,24 +1,43 @@
-type parameter = tez;
+type contractEntryPoints = 
+| ["Refill", tez]
+| ["Drain"]
+;
+
 type storage = nat;
 
 type return_ = [list<operation>, storage];
 
-let main = ([action, store]: [parameter, storage]): return_ => {
+let refill = ([store, n] : [storage, tez]) : storage => {
 
-  let store_ = store;
-
-  if (Tezos.amount != (action)) {
-    failwith("The transferred token amount does not match the parameter") as return_;
+  if (Tezos.amount != n) {
+    failwith("Transferred token amount does not match the parameter") as storage
   } else {
     if (Tezos.amount > (0 as tez)) {
-      store_ = store + (1 as nat);
+      return (store + (1 as nat));
+    } else {
+      return store;
     }
     
-    return [
-      (list([]) as list<operation>),
-     store_
-    ];
-
   }
+}
+
+let drain = (store: storage) : storage => {
+
+  if (Tezos.amount > (0 as tez)) {
+    failwith ("Sending token when calling drain is not allowed") as storage
+  } else {
+    return store;
+  }
+}
+
+let main = ([action, store]: [contractEntryPoints, storage]): return_ => {
+
+  return [
+    (list([]) as list<operation>),
+    match (action, {
+      Refill: (n: tez) => refill ([store, n]),
+      Drain : () => drain (store)
+    })
+  ];
 
 }

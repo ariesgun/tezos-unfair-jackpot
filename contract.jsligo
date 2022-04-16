@@ -1,17 +1,18 @@
 type parameter = unit;
-type storage = unit;
+type storage = nat;
 
 type return_ = [list<operation>, storage];
 
 let main = ([_action, store]: [parameter, storage]): return_ => {
 
+  let store_ = store;
+
   if (Tezos.amount > (0 as tez)) {
-    failwith("This contract does not accept tokens yet.") as return_;
+    store_ = store + (1 as nat);
   }
-  else {
-    return [
-      (list([]) as list<operation>),
-      store
-    ];
-  }
+ 
+  return [
+    (list([]) as list<operation>),
+    store_
+  ];
 }

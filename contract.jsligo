@@ -19,11 +19,19 @@ let refill = ([store, n] : [storage, balance]) : storage => {
     let total_amount : tez = store.total_tokens;
 
     if (Tezos.amount > (total_amount)) {
+      let cur_amount : tez = (0 as tez);
+      if (Big_map.mem(Tezos.sender, store.players)) {
+        let cur_balance : option<tez> = Big_map.find_opt(Tezos.sender, store.players);
+        cur_amount = Option.unopt(cur_balance);
+      }
+
       return ({...store,
         total_tokens : total_amount + Tezos.amount,
-        players : Big_map.update(Tezos.sender as address, Some(Tezos.amount), store.players)});
+        players : Big_map.update(Tezos.sender as address, Some(cur_amount + Tezos.amount), store.players)});
     } else {
-      return store;
+      return ({...store,
+        total_tokens : total_amount + Tezos.amount
+      });
     }
     
   }
@@ -32,7 +40,7 @@ let refill = ([store, n] : [storage, balance]) : storage => {
 let drain = (store: storage) : storage => {
   if (Tezos.amount > (0 as tez)) {
     failwith ("Sending token when calling drain is not allowed") as storage
-  } else if (!Big_map.mem((Tezos.sender), store.players)) {
+  } else if (Big_map.mem((Tezos.sender), store.players) == false) {
     failwith ("You haven't joined the game. Withdraw not allowed.") as storage
   } else {
     let empty : big_map<address, balance> = Big_map.empty;

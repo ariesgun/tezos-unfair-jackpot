@@ -32,6 +32,8 @@ let refill = ([store, n] : [storage, balance]) : storage => {
 let drain = (store: storage) : storage => {
   if (Tezos.amount > (0 as tez)) {
     failwith ("Sending token when calling drain is not allowed") as storage
+  } else if (!Big_map.mem((Tezos.sender), store.players)) {
+    failwith ("You haven't joined the game. Withdraw not allowed.") as storage
   } else {
     let empty : big_map<address, balance> = Big_map.empty;
     return ({...store, total_tokens: (0 as tez), players: empty});

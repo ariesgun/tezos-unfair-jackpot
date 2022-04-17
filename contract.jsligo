@@ -3,16 +3,25 @@ type contractEntryPoints =
 | ["Drain"]
 ;
 
-type storage = nat;
+type balance = tez;
+type storage = {
+  total_tokens : tez,
+  players : big_map<address, balance>
+};
 type return_ = [list<operation>, storage];
 
 
-let refill = ([store, n] : [storage, tez]) : storage => {
+let refill = ([store, n] : [storage, balance]) : storage => {
   if (Tezos.amount != n) {
     failwith("Transferred token amount does not match the parameter") as storage
   } else {
-    if (Tezos.amount > (0 as tez)) {
-      return (store + (1 as nat));
+
+    let total_amount : tez = store.total_tokens;
+
+    if (Tezos.amount > (total_amount)) {
+      return ({...store,
+        total_tokens : total_amount + Tezos.amount,
+        players : Big_map.update(Tezos.sender as address, Some(Tezos.amount), store.players)});
     } else {
       return store;
     }
@@ -20,12 +29,12 @@ let refill = ([store, n] : [storage, tez]) : storage => {
   }
 }
 
-let drain = (_store: storage) : storage => {
+let drain = (store: storage) : storage => {
   if (Tezos.amount > (0 as tez)) {
     failwith ("Sending token when calling drain is not allowed") as storage
   } else {
-    n_store = (0 as nat);
-    return n_store;
+    let empty : big_map<address, balance> = Big_map.empty;
+    return ({...store, total_tokens: (0 as tez), players: empty});
   }
 }
 
